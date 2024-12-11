@@ -37,32 +37,22 @@ export default function Game() {
       try {
         setIsLoading(true);
         setError(null);
-        console.log('Initializing game...');
+        console.log('Starting game initialization...');
 
-        // Testa a conexão com o Supabase
-        const isConnected = await testConnection();
-        if (!isConnected) {
-          setError('Erro de conexão com o banco de dados. Verifique sua conexão com a internet e tente novamente.');
-          setIsLoading(false);
-          return;
-        }
-
-        // Carrega as questões
-        console.log('Loading questions...');
-        const questions = await questionService.getQuestions();
-        console.log('Questions loaded:', questions?.length || 0, 'questions');
+        // Inicializa o jogo (isso irá buscar as questões internamente)
+        await initializeGame();
         
-        if (!questions || questions.length === 0) {
+        // Verifica se as questões foram carregadas
+        const currentState = useGameStore.getState();
+        console.log('Current game state:', currentState);
+        
+        if (!currentState.questions || currentState.questions.length === 0) {
           setError('Não há perguntas disponíveis no momento. Por favor, tente novamente mais tarde.');
           setIsLoading(false);
           return;
         }
 
-        // Inicializa o jogo com as questões carregadas
-        console.log('Initializing game state...');
-        await initializeGame();
-        console.log('Game initialized successfully');
-        
+        console.log('Game initialized with', currentState.questions.length, 'questions');
         setIsLoading(false);
       } catch (error) {
         console.error('Error in loadGame:', error);

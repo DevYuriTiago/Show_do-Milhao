@@ -38,15 +38,10 @@ export const useGameStore = create<GameState>((set, get) => ({
   initializeGame: async () => {
     try {
       console.log('Initializing game store...');
-      const questions = await questionService.getQuestions();
       
-      if (!questions || questions.length === 0) {
-        throw new Error('Não há perguntas cadastradas no banco de dados.');
-      }
-
-      console.log('Game store initialized with questions:', questions);
-      set({ 
-        questions,
+      // Limpa o estado atual
+      set({
+        questions: [],
         currentQuestion: 0,
         score: 0,
         correctAnswers: [],
@@ -58,9 +53,26 @@ export const useGameStore = create<GameState>((set, get) => ({
           university: true,
         }
       });
+
+      // Busca as questões
+      const questions = await questionService.getQuestions();
+      console.log('Questions fetched in store:', questions);
+      
+      if (!questions || questions.length === 0) {
+        console.error('No questions available in the database');
+        throw new Error('Não há perguntas cadastradas no banco de dados.');
+      }
+
+      // Embaralha as questões
+      const shuffledQuestions = [...questions].sort(() => Math.random() - 0.5);
+      console.log('Questions shuffled:', shuffledQuestions.length, 'questions available');
+
+      // Atualiza o estado com as questões embaralhadas
+      set({ questions: shuffledQuestions });
+      console.log('Game store initialized successfully');
     } catch (error) {
       console.error('Error initializing game store:', error);
-      throw error; // Propaga o erro para ser tratado no componente
+      throw error;
     }
   },
 
