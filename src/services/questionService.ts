@@ -20,16 +20,16 @@ export const questionService = {
         throw error;
       }
 
-      if (!data || data.length === 0) {
-        console.log('No questions found in the database');
-      } else {
-        console.log('Questions fetched:', data);
+      if (!data) {
+        console.error('No data returned from Supabase');
+        return [];
       }
 
-      return data || [];
+      console.log('Questions fetched successfully:', data);
+      return data;
     } catch (error) {
       console.error('Error fetching questions:', error);
-      throw error; // Propaga o erro em vez de retornar array vazio
+      throw error;
     }
   },
 

@@ -34,25 +34,21 @@ export default function Game() {
   useEffect(() => {
     const loadGame = async () => {
       try {
+        setIsLoading(true);
         console.log('Initializing game...');
-        await initializeGame();
-        
-        // Verifica se há questões disponíveis
         const questions = await questionService.getQuestions();
+        
         if (!questions || questions.length === 0) {
-          setError('Não há perguntas cadastradas. Por favor, acesse o painel administrativo para adicionar perguntas.');
+          setError('Não foi possível carregar as perguntas. Por favor, tente novamente.');
           return;
         }
-        
-        console.log('Game initialized with questions:', questions);
-      } catch (err) {
-        console.error('Error initializing game:', err);
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError('Erro ao carregar as perguntas.');
-        }
-      } finally {
+
+        console.log('Questions loaded:', questions);
+        await initializeGame();
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error loading game:', error);
+        setError('Ocorreu um erro ao carregar o jogo. Por favor, tente novamente.');
         setIsLoading(false);
       }
     };
@@ -64,7 +60,7 @@ export default function Game() {
       audio.pause();
       audio.currentTime = 0;
     };
-  }, []);
+  }, [initializeGame]);
 
   const currentQuestionData = questions[currentQuestion];
   console.log('Current question data:', currentQuestionData);
