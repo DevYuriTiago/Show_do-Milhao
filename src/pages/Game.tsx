@@ -3,12 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, AlertCircle } from 'lucide-react';
 import { QuestionCard } from '../components/QuestionCard';
-import { Lifelines } from '../components/Lifelines';
 import { Button } from '../components/Button';
 import { useGameStore } from '../store/game';
 import { formatMoney } from '../lib/utils';
-import { questionService } from '../services/questionService';
-import { testConnection } from '../lib/supabase';
 
 const GAME_MUSIC_URL = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
 
@@ -44,19 +41,16 @@ export default function Game() {
         
         // Verifica se as questões foram carregadas
         const currentState = useGameStore.getState();
-        console.log('Current game state:', currentState);
+        console.log('Game initialized. Questions loaded:', currentState.questions.length);
         
         if (!currentState.questions || currentState.questions.length === 0) {
-          setError('Não há perguntas disponíveis no momento. Por favor, tente novamente mais tarde.');
-          setIsLoading(false);
-          return;
+          throw new Error('Não foi possível carregar as perguntas. Verifique se há perguntas cadastradas no banco de dados.');
         }
 
-        console.log('Game initialized with', currentState.questions.length, 'questions');
         setIsLoading(false);
       } catch (error) {
-        console.error('Error in loadGame:', error);
-        setError(error instanceof Error ? error.message : 'Ocorreu um erro ao carregar o jogo. Por favor, tente novamente.');
+        console.error('Error loading game:', error);
+        setError(error instanceof Error ? error.message : 'Erro ao iniciar o jogo');
         setIsLoading(false);
       }
     };
@@ -65,10 +59,10 @@ export default function Game() {
 
     // Cleanup function
     return () => {
-      setError(null);
-      setIsLoading(false);
+      audio.pause();
+      audio.currentTime = 0;
     };
-  }, [initializeGame]);
+  }, []);
 
   const currentQuestionData = questions[currentQuestion];
   console.log('Current question data:', currentQuestionData);

@@ -7,15 +7,28 @@ export const questionService = {
   async getQuestions(): Promise<Question[]> {
     try {
       console.log('Fetching questions from Supabase...');
+      
+      // Primeiro, vamos verificar a conexão
+      const { data: testData, error: testError } = await supabase
+        .from('questions')
+        .select('count')
+        .single();
+
+      if (testError) {
+        console.error('Failed to connect to Supabase:', testError);
+        throw new Error(`Connection error: ${testError.message}`);
+      }
+
+      console.log('Connected to Supabase. Question count:', testData?.count);
+
+      // Agora busca todas as questões
       const { data, error } = await supabase
         .from('questions')
-        .select('*')
-        .order('difficulty', { ascending: true })
-        .order('value', { ascending: true });
+        .select('*');
 
       if (error) {
-        console.error('Supabase error:', error);
-        throw new Error(`Failed to fetch questions: ${error.message}`);
+        console.error('Failed to fetch questions:', error);
+        throw new Error(`Query error: ${error.message}`);
       }
 
       if (!data || data.length === 0) {
@@ -23,8 +36,17 @@ export const questionService = {
         return [];
       }
 
-      console.log(`Successfully fetched ${data.length} questions`);
-      return data;
+      // Ordena as questões por dificuldade e valor
+      const sortedQuestions = data.sort((a, b) => {
+        if (a.difficulty !== b.difficulty) {
+          return a.difficulty.localeCompare(b.difficulty);
+        }
+        return a.value - b.value;
+      });
+
+      console.log(`Successfully fetched ${sortedQuestions.length} questions`);
+      console.log('First question:', sortedQuestions[0]);
+      return sortedQuestions;
     } catch (error) {
       console.error('Error in getQuestions:', error);
       throw error;
