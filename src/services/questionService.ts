@@ -8,18 +8,23 @@ export const questionService = {
     try {
       console.log('Fetching questions from Supabase...');
       
-      // Primeiro, vamos verificar a conexão
-      const { data: testData, error: testError } = await supabase
+      // Primeiro, vamos verificar a tabela
+      const { data: tableInfo, error: tableError } = await supabase
         .from('questions')
-        .select('count')
-        .single();
+        .select('*')
+        .limit(1);
 
-      if (testError) {
-        console.error('Failed to connect to Supabase:', testError);
-        throw new Error(`Connection error: ${testError.message}`);
+      console.log('Table check result:', {
+        hasError: !!tableError,
+        error: tableError,
+        hasData: !!tableInfo,
+        firstRow: tableInfo?.[0]
+      });
+
+      if (tableError) {
+        console.error('Failed to check questions table:', tableError);
+        throw new Error(`Table check error: ${tableError.message}`);
       }
-
-      console.log('Connected to Supabase. Question count:', testData?.count);
 
       // Agora busca todas as questões
       const { data, error } = await supabase
@@ -27,14 +32,24 @@ export const questionService = {
         .select('*');
 
       if (error) {
-        console.error('Failed to fetch questions:', error);
+        console.error('Failed to fetch questions:', {
+          error,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
         throw new Error(`Query error: ${error.message}`);
       }
 
-      if (!data || data.length === 0) {
-        console.log('No questions found in database');
+      if (!data) {
+        console.log('No data returned from questions query');
         return [];
       }
+
+      console.log('Raw questions data:', {
+        count: data.length,
+        sample: data.slice(0, 2) // Mostra as duas primeiras questões
+      });
 
       // Ordena as questões por dificuldade e valor
       const sortedQuestions = data.sort((a, b) => {
@@ -44,8 +59,15 @@ export const questionService = {
         return a.value - b.value;
       });
 
-      console.log(`Successfully fetched ${sortedQuestions.length} questions`);
-      console.log('First question:', sortedQuestions[0]);
+      console.log('Questions processed:', {
+        total: sortedQuestions.length,
+        difficulties: [...new Set(sortedQuestions.map(q => q.difficulty))],
+        valueRange: {
+          min: Math.min(...sortedQuestions.map(q => q.value)),
+          max: Math.max(...sortedQuestions.map(q => q.value))
+        }
+      });
+
       return sortedQuestions;
     } catch (error) {
       console.error('Error in getQuestions:', error);

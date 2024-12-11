@@ -41,10 +41,15 @@ export default function Game() {
         
         // Verifica se as questões foram carregadas
         const currentState = useGameStore.getState();
-        console.log('Game initialized. Questions loaded:', currentState.questions.length);
+        console.log('Game state after initialization:', {
+          hasQuestions: currentState.questions.length > 0,
+          questionCount: currentState.questions.length,
+          currentQuestion: currentState.currentQuestion,
+          score: currentState.score
+        });
         
         if (!currentState.questions || currentState.questions.length === 0) {
-          throw new Error('Não foi possível carregar as perguntas. Verifique se há perguntas cadastradas no banco de dados.');
+          throw new Error('Não foi possível carregar as perguntas. Por favor, verifique se há perguntas cadastradas no banco de dados.');
         }
 
         setIsLoading(false);
@@ -63,6 +68,17 @@ export default function Game() {
       audio.currentTime = 0;
     };
   }, []);
+
+  // Log do estado atual do jogo sempre que mudar
+  useEffect(() => {
+    console.log('Current game state:', {
+      currentQuestion,
+      totalQuestions: questions.length,
+      score,
+      hasCurrentQuestion: !!questions[currentQuestion],
+      currentQuestionData: questions[currentQuestion]
+    });
+  }, [currentQuestion, questions, score]);
 
   const currentQuestionData = questions[currentQuestion];
   console.log('Current question data:', currentQuestionData);
