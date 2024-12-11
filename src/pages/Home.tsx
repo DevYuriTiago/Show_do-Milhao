@@ -3,11 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Trophy, HelpCircle, LogIn } from 'lucide-react';
 import { Button } from '../components/Button';
-import { storage } from '../lib/storage';
 
 export default function Home() {
   const navigate = useNavigate();
-  const questions = storage.getQuestions();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-900 to-black relative overflow-hidden">
@@ -44,15 +42,10 @@ export default function Home() {
           <Button
             size="lg"
             className="mb-8 w-64 bg-blue-600 hover:bg-blue-500 shadow-[0_0_30px_rgba(0,0,255,0.5)] hover:shadow-[0_0_50px_rgba(0,0,255,0.8)] transition-all duration-300"
-            onClick={() => {
-              if (questions.length === 0) {
-                alert('Não há perguntas cadastradas. Por favor, acesse o painel administrativo para adicionar perguntas.');
-                return;
-              }
-              navigate('/game');
-            }}
+            onClick={() => navigate('/game')}
           >
-            Iniciar Jogo
+            <Trophy className="w-6 h-6 mr-2" />
+            Jogar Agora
           </Button>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl">

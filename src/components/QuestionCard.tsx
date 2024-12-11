@@ -26,7 +26,7 @@ export function QuestionCard({
 
   return (
     <div className="w-full max-w-3xl bg-blue-900/20 backdrop-blur-sm rounded-lg p-6 text-white border border-blue-500 shadow-[0_0_30px_rgba(0,0,255,0.3)]">
-      <h3 className="text-2xl font-bold mb-6">{question.text}</h3>
+      <h3 className="text-3xl font-bold mb-6 text-white">{question.text}</h3>
       <div className="grid grid-cols-1 gap-4">
         {options.map((option, index) => {
           const letter = String.fromCharCode(65 + index);
@@ -44,9 +44,9 @@ export function QuestionCard({
               <Button
                 variant="outline"
                 className={cn(
-                  'text-left p-4 h-auto w-full transition-all',
-                  'border-blue-500 hover:border-blue-400',
-                  !isLocked && 'hover:shadow-[0_0_15px_rgba(0,0,255,0.5)]',
+                  'text-left p-4 h-auto w-full transition-all text-lg text-white',
+                  'border-blue-500 hover:border-green-400',
+                  !isLocked && 'hover:shadow-[0_0_15px_rgba(0,255,0,0.5)] hover:bg-green-500/20',
                   isSelected && !isLocked && 'bg-blue-500 text-white border-blue-500',
                   isCorrect && 'bg-green-500 text-white border-green-500',
                   isWrong && 'bg-red-500 text-white border-red-500',

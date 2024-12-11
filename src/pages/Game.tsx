@@ -8,6 +8,7 @@ import { useGameStore } from '../store/game';
 import { formatMoney } from '../lib/utils';
 
 const GAME_MUSIC_URL = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
+const SELECTION_SOUND_URL = 'https://www.soundjay.com/mechanical/sounds/laser-gun-19.mp3';
 
 export default function Game() {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ export default function Game() {
   const [selectedAnswer, setSelectedAnswer] = useState<string | undefined>();
   const [isAnswerLocked, setIsAnswerLocked] = useState(false);
   const [audio] = useState(new Audio(GAME_MUSIC_URL));
+  const [selectionSound] = useState(new Audio(SELECTION_SOUND_URL));
 
   const {
     currentQuestion,
@@ -28,6 +30,70 @@ export default function Game() {
     addWrongAnswer,
     initializeGame,
   } = useGameStore();
+
+  // Efeito para controlar a música do jogo
+  useEffect(() => {
+    // Configura o volume e loop
+    audio.volume = 0.5;
+    audio.loop = true;
+
+    // Configura o volume do som de seleção
+    selectionSound.volume = 0.3;
+
+    // Inicia a música
+    const playMusic = async () => {
+      try {
+        await audio.play();
+      } catch (error) {
+        console.error('Error playing music:', error);
+      }
+    };
+    playMusic();
+
+    // Cleanup: para a música quando o componente for desmontado
+    return () => {
+      audio.pause();
+      audio.currentTime = 0;
+    };
+  }, []);
+
+  const handleAnswerSelect = (answer: string) => {
+    if (!isAnswerLocked) {
+      setSelectedAnswer(answer);
+      // Toca o som de seleção
+      selectionSound.currentTime = 0; // Reseta o som para poder tocar várias vezes
+      selectionSound.play().catch(console.error);
+    }
+  };
+
+  const handleConfirmAnswer = () => {
+    if (!selectedAnswer || !questions[currentQuestion]) return;
+
+    setIsAnswerLocked(true);
+    
+    // Converte a letra selecionada (A, B, C, D) para índice (0, 1, 2, 3)
+    const selectedIndex = selectedAnswer.charCodeAt(0) - 65;
+    const isCorrect = selectedIndex === questions[currentQuestion].correct_answer;
+
+    setTimeout(() => {
+      if (isCorrect) {
+        addCorrectAnswer(questions[currentQuestion]);
+      } else {
+        addWrongAnswer(questions[currentQuestion]);
+      }
+
+      // Sempre avança para a próxima pergunta, independente de acertar ou errar
+      if (currentQuestion === questions.length - 1) {
+        // Se for a última pergunta, vai para a tela de resultados
+        navigate('/game-over');
+      } else {
+        // Se não for a última, avança para a próxima
+        setCurrentQuestion(currentQuestion + 1);
+        setSelectedAnswer(undefined);
+        setIsAnswerLocked(false);
+      }
+    }, 2000);
+  };
 
   useEffect(() => {
     const loadGame = async () => {
@@ -82,41 +148,6 @@ export default function Game() {
 
   const currentQuestionData = questions[currentQuestion];
   console.log('Current question data:', currentQuestionData);
-
-  const handleAnswerSelect = (answer: string) => {
-    if (!isAnswerLocked) {
-      setSelectedAnswer(answer);
-    }
-  };
-
-  const handleConfirmAnswer = () => {
-    if (!selectedAnswer || !currentQuestionData) return;
-
-    setIsAnswerLocked(true);
-    
-    // Converte a letra selecionada (A, B, C, D) para índice (0, 1, 2, 3)
-    const selectedIndex = selectedAnswer.charCodeAt(0) - 65;
-    const isCorrect = selectedIndex === currentQuestionData.correct_answer;
-
-    setTimeout(() => {
-      if (isCorrect) {
-        addCorrectAnswer(currentQuestionData);
-      } else {
-        addWrongAnswer(currentQuestionData);
-      }
-
-      // Sempre avança para a próxima pergunta, independente de acertar ou errar
-      if (currentQuestion === questions.length - 1) {
-        // Se for a última pergunta, vai para a tela de resultados
-        navigate('/game-over');
-      } else {
-        // Se não for a última, avança para a próxima
-        setCurrentQuestion(currentQuestion + 1);
-        setSelectedAnswer(undefined);
-        setIsAnswerLocked(false);
-      }
-    }, 2000);
-  };
 
   if (isLoading) {
     return (
