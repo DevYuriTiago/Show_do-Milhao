@@ -8,6 +8,7 @@ import { Button } from '../components/Button';
 import { useGameStore } from '../store/game';
 import { formatMoney } from '../lib/utils';
 import { questionService } from '../services/questionService';
+import { testConnection } from '../lib/supabase';
 
 const GAME_MUSIC_URL = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
 
@@ -36,10 +37,20 @@ export default function Game() {
       try {
         setIsLoading(true);
         console.log('Initializing game...');
+
+        // Testa a conexão com o Supabase
+        const isConnected = await testConnection();
+        if (!isConnected) {
+          setError('Não foi possível conectar ao banco de dados. Por favor, tente novamente.');
+          setIsLoading(false);
+          return;
+        }
+
         const questions = await questionService.getQuestions();
         
         if (!questions || questions.length === 0) {
           setError('Não foi possível carregar as perguntas. Por favor, tente novamente.');
+          setIsLoading(false);
           return;
         }
 
