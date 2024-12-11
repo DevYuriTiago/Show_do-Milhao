@@ -3,37 +3,53 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-console.log('Supabase URL:', supabaseUrl ? 'Configurado' : 'Não configurado');
-console.log('Supabase Key:', supabaseAnonKey ? 'Configurado' : 'Não configurado');
+// Log environment configuration status
+console.log('Environment Configuration:');
+console.log('- VITE_SUPABASE_URL:', supabaseUrl ? '✓ Configured' : '✗ Missing');
+console.log('- VITE_SUPABASE_ANON_KEY:', supabaseAnonKey ? '✓ Configured' : '✗ Missing');
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables');
+  throw new Error(`
+    Missing Supabase environment variables:
+    VITE_SUPABASE_URL: ${supabaseUrl ? 'Configured' : 'Missing'}
+    VITE_SUPABASE_ANON_KEY: ${supabaseAnonKey ? 'Configured' : 'Missing'}
+  `);
 }
 
+// Initialize Supabase client with additional options
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
+    detectSessionInUrl: true
+  },
+  db: {
+    schema: 'public'
   }
 });
 
-// Função para testar a conexão
+// Test connection function
 export async function testConnection() {
   try {
     console.log('Testing Supabase connection...');
+    const startTime = Date.now();
+    
     const { data, error } = await supabase
       .from('questions')
       .select('count');
 
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+
     if (error) {
-      console.error('Connection error:', error);
+      console.error('Connection test failed:', error);
       return false;
     }
 
-    console.log('Connection successful:', data);
+    console.log(`Connection test successful (${duration}ms):`, data);
     return true;
   } catch (error) {
-    console.error('Connection test failed:', error);
+    console.error('Connection test error:', error);
     return false;
   }
 }

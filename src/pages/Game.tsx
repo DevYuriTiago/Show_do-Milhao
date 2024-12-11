@@ -36,40 +36,47 @@ export default function Game() {
     const loadGame = async () => {
       try {
         setIsLoading(true);
+        setError(null);
         console.log('Initializing game...');
 
         // Testa a conexão com o Supabase
         const isConnected = await testConnection();
         if (!isConnected) {
-          setError('Não foi possível conectar ao banco de dados. Por favor, tente novamente.');
+          setError('Erro de conexão com o banco de dados. Verifique sua conexão com a internet e tente novamente.');
           setIsLoading(false);
           return;
         }
 
+        // Carrega as questões
+        console.log('Loading questions...');
         const questions = await questionService.getQuestions();
+        console.log('Questions loaded:', questions?.length || 0, 'questions');
         
         if (!questions || questions.length === 0) {
-          setError('Não foi possível carregar as perguntas. Por favor, tente novamente.');
+          setError('Não há perguntas disponíveis no momento. Por favor, tente novamente mais tarde.');
           setIsLoading(false);
           return;
         }
 
-        console.log('Questions loaded:', questions);
+        // Inicializa o jogo com as questões carregadas
+        console.log('Initializing game state...');
         await initializeGame();
+        console.log('Game initialized successfully');
+        
         setIsLoading(false);
       } catch (error) {
-        console.error('Error loading game:', error);
-        setError('Ocorreu um erro ao carregar o jogo. Por favor, tente novamente.');
+        console.error('Error in loadGame:', error);
+        setError(error instanceof Error ? error.message : 'Ocorreu um erro ao carregar o jogo. Por favor, tente novamente.');
         setIsLoading(false);
       }
     };
 
     loadGame();
-    audio.play().catch(console.error);
 
+    // Cleanup function
     return () => {
-      audio.pause();
-      audio.currentTime = 0;
+      setError(null);
+      setIsLoading(false);
     };
   }, [initializeGame]);
 

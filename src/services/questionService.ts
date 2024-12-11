@@ -1,8 +1,6 @@
 import { supabase } from '../lib/supabase';
 import type { Question } from '../types/quiz';
 
-const API_URL = 'http://localhost:3000'; // Ajuste para a URL do seu backend
-
 export type { Question };
 
 export const questionService = {
@@ -17,18 +15,18 @@ export const questionService = {
 
       if (error) {
         console.error('Supabase error:', error);
-        throw error;
+        throw new Error(`Failed to fetch questions: ${error.message}`);
       }
 
-      if (!data) {
-        console.error('No data returned from Supabase');
+      if (!data || data.length === 0) {
+        console.log('No questions found in database');
         return [];
       }
 
-      console.log('Questions fetched successfully:', data);
+      console.log(`Successfully fetched ${data.length} questions`);
       return data;
     } catch (error) {
-      console.error('Error fetching questions:', error);
+      console.error('Error in getQuestions:', error);
       throw error;
     }
   },
