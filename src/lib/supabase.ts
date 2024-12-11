@@ -4,67 +4,58 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Log environment configuration status
-console.log('Environment Configuration:');
-console.log('- VITE_SUPABASE_URL:', supabaseUrl ? '✓ Configured' : '✗ Missing');
-console.log('- VITE_SUPABASE_ANON_KEY:', supabaseAnonKey ? '✓ Configured' : '✗ Missing');
+console.log('Supabase Configuration:');
+console.log('URL:', supabaseUrl);
+console.log('Key:', supabaseAnonKey ? '✓ Configured' : '✗ Missing');
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error(`
-    Missing Supabase environment variables:
-    VITE_SUPABASE_URL: ${supabaseUrl ? 'Configured' : 'Missing'}
-    VITE_SUPABASE_ANON_KEY: ${supabaseAnonKey ? 'Configured' : 'Missing'}
-  `);
+  throw new Error('Missing Supabase environment variables. Check .env file.');
 }
 
 // Initialize Supabase client with additional options
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    persistSession: true,
     autoRefreshToken: true,
+    persistSession: true,
     detectSessionInUrl: true
-  },
-  db: {
-    schema: 'public'
   },
   global: {
     headers: {
-      'Access-Control-Allow-Origin': '*'
+      'X-Client-Info': 'show-do-milhao@1.0.0'
     }
   }
 });
 
-// Test connection function with detailed error logging
-export async function testConnection() {
+// Test connection and log detailed information
+async function testConnection() {
   try {
-    console.log('Testing Supabase connection...');
-    console.log('Using URL:', supabaseUrl);
-    const startTime = Date.now();
-    
     const { data, error } = await supabase
       .from('questions')
-      .select('count');
-
-    const endTime = Date.now();
-    const duration = endTime - startTime;
+      .select('count(*)')
+      .single();
 
     if (error) {
-      console.error('Connection test failed:', {
-        error,
-        errorMessage: error.message,
-        errorDetails: error.details,
-        errorHint: error.hint,
-        statusCode: error.code
+      console.error('Supabase Connection Error:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint
       });
       return false;
     }
 
-    console.log(`Connection test successful (${duration}ms):`, data);
+    console.log('Supabase Connection Success:', {
+      questionCount: data?.count,
+      timestamp: new Date().toISOString()
+    });
     return true;
   } catch (error) {
-    console.error('Connection test error:', error);
+    console.error('Unexpected Supabase Error:', error);
     return false;
   }
 }
+
+// Execute connection test
+testConnection().catch(console.error);
 
 // Função para verificar a estrutura da tabela
 export async function checkTableStructure() {
