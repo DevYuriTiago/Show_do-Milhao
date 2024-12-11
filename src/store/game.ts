@@ -56,7 +56,10 @@ export const useGameStore = create<GameState>((set, get) => ({
 
       // Busca as questões
       const questions = await questionService.getQuestions();
-      console.log('Questions fetched in store:', questions);
+      console.log('Questions fetched in store:', {
+        count: questions.length,
+        sample: questions.slice(0, 2)
+      });
       
       if (!questions || questions.length === 0) {
         console.error('No questions available in the database');
@@ -65,11 +68,25 @@ export const useGameStore = create<GameState>((set, get) => ({
 
       // Embaralha as questões
       const shuffledQuestions = [...questions].sort(() => Math.random() - 0.5);
-      console.log('Questions shuffled:', shuffledQuestions.length, 'questions available');
+      console.log('Questions prepared:', {
+        total: shuffledQuestions.length,
+        first: shuffledQuestions[0],
+        difficulties: [...new Set(shuffledQuestions.map(q => q.difficulty))]
+      });
 
       // Atualiza o estado com as questões embaralhadas
-      set({ questions: shuffledQuestions });
-      console.log('Game store initialized successfully');
+      set(state => ({
+        ...state,
+        questions: shuffledQuestions
+      }));
+
+      // Verifica se o estado foi atualizado corretamente
+      const newState = get();
+      console.log('Game store state after initialization:', {
+        questionCount: newState.questions.length,
+        hasQuestions: newState.questions.length > 0,
+        firstQuestion: newState.questions[0]
+      });
     } catch (error) {
       console.error('Error initializing game store:', error);
       throw error;
@@ -77,18 +94,20 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   setCurrentQuestion: (index) => {
-    set({ currentQuestion: index });
+    set(state => ({ ...state, currentQuestion: index }));
   },
 
   addCorrectAnswer: (question) => {
-    set((state) => ({
+    set(state => ({
+      ...state,
       score: state.score + question.value,
       correctAnswers: [...state.correctAnswers, question],
     }));
   },
 
   addWrongAnswer: (question) => {
-    set((state) => ({
+    set(state => ({
+      ...state,
       wrongAnswers: [...state.wrongAnswers, question],
     }));
 
@@ -102,7 +121,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   useLifeline: (lifeline) => {
-    set((state) => ({
+    set(state => ({
+      ...state,
       lifelines: {
         ...state.lifelines,
         [lifeline]: false,
