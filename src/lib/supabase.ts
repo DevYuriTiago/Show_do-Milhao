@@ -29,10 +29,11 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 // Test connection and log detailed information
 async function testConnection() {
   try {
+    // Primeiro, tenta buscar uma única questão para testar a conexão
     const { data, error } = await supabase
       .from('questions')
-      .select('count(*)')
-      .single();
+      .select('id')
+      .limit(1);
 
     if (error) {
       console.error('Supabase Connection Error:', {
@@ -44,7 +45,8 @@ async function testConnection() {
     }
 
     console.log('Supabase Connection Success:', {
-      questionCount: data?.count,
+      connected: true,
+      hasQuestions: data && data.length > 0,
       timestamp: new Date().toISOString()
     });
     return true;
