@@ -25,13 +25,19 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
   db: {
     schema: 'public'
+  },
+  global: {
+    headers: {
+      'Access-Control-Allow-Origin': '*'
+    }
   }
 });
 
-// Test connection function
+// Test connection function with detailed error logging
 export async function testConnection() {
   try {
     console.log('Testing Supabase connection...');
+    console.log('Using URL:', supabaseUrl);
     const startTime = Date.now();
     
     const { data, error } = await supabase
@@ -42,7 +48,13 @@ export async function testConnection() {
     const duration = endTime - startTime;
 
     if (error) {
-      console.error('Connection test failed:', error);
+      console.error('Connection test failed:', {
+        error,
+        errorMessage: error.message,
+        errorDetails: error.details,
+        errorHint: error.hint,
+        statusCode: error.code
+      });
       return false;
     }
 
